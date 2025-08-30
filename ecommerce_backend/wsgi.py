@@ -9,6 +9,17 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
 
 import os
 
+if any(key.startswith('RAILWAY_') for key in os.environ.keys()):  # Detects Railway environment
+    import django
+    from django.contrib.auth import get_user_model
+    try:
+        User = get_user_model()
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@gmail.com', 'admin123')
+            print("✅ Superuser created: admin/admin123")
+    except Exception as e:
+        print(f"Superuser creation failed: {e}")
+
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecommerce_backend.settings')
