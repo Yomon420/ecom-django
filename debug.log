@@ -1,0 +1,8 @@
+[DEBUG] 2025-08-25 14:09:14,354 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=10 -> []
+[DEBUG] 2025-08-25 14:11:11,287 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=10 -> []
+[DEBUG] 2025-08-25 14:11:34,407 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=24 -> []
+[DEBUG] 2025-08-25 14:11:38,752 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=10 -> []
+[DEBUG] 2025-08-25 14:11:53,014 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=28 -> []
+[DEBUG] 2025-08-25 14:17:08,495 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=2 -> [{'id': 29, 'order_id': 15, 'status': 'DELIVERED'}]
+[DEBUG] 2025-08-25 14:17:17,323 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=1 -> [{'id': 28, 'order_id': 15, 'status': 'DELIVERED'}]
+[DEBUG] 2025-08-25 14:17:21,657 apps.reviews.permissions: Checking delivered OrderItems for user=john@example.com, product=122 -> []
