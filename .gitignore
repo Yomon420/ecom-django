@@ -4,12 +4,13 @@
 *.pyc
 __pycache__/
 db.sqlite3
+debug.log
+
 
 # Environments
 .env
 venv/
 env/
-debug.log
 
 # IDE
 .vscode/
