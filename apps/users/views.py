@@ -6,6 +6,8 @@ from .serializers import RegisterSerializer, VerifyOTPSerializer, UserSerializer
 from .services import send_otp_to_email, verify_otp_and_create_user
 from django.contrib.auth import get_user_model
 from apps.utils.responses import success_response, error_response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 User = get_user_model()
 
@@ -20,9 +22,20 @@ class UserViewSet(viewsets.ModelViewSet):
         return User.objects.filter(id=self.request.user.id)
     
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 class AuthViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=RegisterSerializer,
+        responses={
+            200: openapi.Response("OTP sent successfully"),
+            400: openapi.Response("Validation errors"),
+        }
+    )
     @action(detail=False, methods=['post'])
     def register(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -36,6 +49,34 @@ class AuthViewSet(viewsets.ViewSet):
                 return error_response(message="Failed to send OTP", errors=str(e))
         return error_response(errors=serializer.errors)
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(
+                description="Login successful",
+                examples={
+                    "application/json": {
+                        "success": True,
+                        "message": "Login successful",
+                        "data": {
+                            "user": {
+                                "id": 1,
+                                "email": "john@example.com",
+                                "first_name": "John",
+                                "last_name": "Doe",
+                            },
+                            "tokens": {
+                                "access": "jwt-access-token",
+                                "refresh": "jwt-refresh-token"
+                            }
+                        }
+                    }
+                }
+            ),
+            400: "Invalid credentials"
+        }
+    )
     @action(detail=False, methods=['post'])
     def login(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -46,6 +87,14 @@ class AuthViewSet(viewsets.ViewSet):
             )
         return error_response(errors=serializer.errors, message="Login failed")
 
+    @swagger_auto_schema(
+        method="post",
+        request_body=VerifyOTPSerializer,
+        responses={
+            201: openapi.Response("Account verified successfully"),
+            400: "Invalid OTP or input"
+        }
+    )
     @action(detail=False, methods=['post'])
     def verify_otp(self, request):
         serializer = VerifyOTPSerializer(data=request.data)
