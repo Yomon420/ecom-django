@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import RegisterSerializer, VerifyOTPSerializer, UserSerializer,LoginSerializer
 from .services import send_otp_to_email, verify_otp_and_create_user
 from django.contrib.auth import get_user_model
+from apps.utils.responses import success_response, error_response
 
 User = get_user_model()
 
@@ -20,57 +21,55 @@ class UserViewSet(viewsets.ModelViewSet):
     
 
 class AuthViewSet(viewsets.ViewSet):
-    """
-    Authentication ViewSet
-    """
     permission_classes = [AllowAny]
 
     @action(detail=False, methods=['post'])
     def register(self, request):
-        """
-        Register new user and send OTP
-        """
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            send_otp_to_email(serializer.validated_data)
-            return Response(
-                {'message': 'OTP sent to email. Please verify to complete registration.'},
-                status=status.HTTP_200_OK
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+            try:
+                send_otp_to_email(serializer.validated_data)
+                return success_response(
+                    message="OTP sent to email. Please verify to complete registration."
+                )
+            except Exception as e:
+                return error_response(message="Failed to send OTP", errors=str(e))
+        return error_response(errors=serializer.errors)
+
     @action(detail=False, methods=['post'])
     def login(self, request):
-        """
-        User login with email + password (JWT + profile)
-        """
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            return Response(serializer.validated_data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return success_response(
+                data=serializer.validated_data,
+                message="Login successful"
+            )
+        return error_response(errors=serializer.errors, message="Login failed")
 
     @action(detail=False, methods=['post'])
     def verify_otp(self, request):
-        """
-        Verify OTP and create user
-        """
         serializer = VerifyOTPSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
             otp = serializer.validated_data['otp']
-
-            user, result = verify_otp_and_create_user(email, otp)
+            try:
+                user, result = verify_otp_and_create_user(email, otp)
+            except Exception as e:
+                return error_response(message="Internal error verifying OTP", errors=str(e))
 
             if user is None:
-                return Response({'error': result}, status=status.HTTP_400_BAD_REQUEST)
+                return error_response(message="OTP verification failed", errors=result)
 
-            return Response({
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'role': user.role,
+            return success_response(
+                data={
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "role": user.role,
+                    },
+                    "tokens": result,
                 },
-                'tokens': result  # result is the token dict
-            }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                message="Account verified successfully",
+                code=status.HTTP_201_CREATED,
+            )
+        return error_response(errors=serializer.errors, message="Invalid input")

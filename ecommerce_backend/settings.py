@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "apps.payment",
     "apps.products",
     "apps.reviews",
+    "apps.utils",
+
     ]
 
 MIDDLEWARE = [
@@ -117,6 +119,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
 # REST FRAMEWORK + JWT CONFIG
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
