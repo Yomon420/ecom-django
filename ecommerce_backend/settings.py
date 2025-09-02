@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
 
+    "drf_yasg",
+
     # Your apps
     "apps.cart",   
     "apps.addresses",        
@@ -61,7 +63,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
-        "APP_DIRS": True,
+        "APP_DIRS": True,   # <-- this must be True
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -72,6 +74,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = "ecommerce_backend.wsgi.application"
 
@@ -119,7 +122,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
 
 # REST FRAMEWORK + JWT CONFIG
 REST_FRAMEWORK = {
-    "EXCEPTION_HANDLER": "utils.exception_handler.custom_exception_handler",
+    "EXCEPTION_HANDLER": "apps.utils.exception_handler.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
