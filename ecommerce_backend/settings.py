@@ -142,8 +142,12 @@ SWAGGER_SETTINGS = {
             'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer <token>"',
         }
     },
-    'USE_SESSION_AUTH': False,  # disable Django login button
+    'USE_SESSION_AUTH': False,
 }
+
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+# USE_TLS = True
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=24),

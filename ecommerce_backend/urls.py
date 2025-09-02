@@ -1,17 +1,26 @@
+import os
 from django.urls import path, include, re_path
 from django.contrib import admin
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+# Environment-based base URL
+base_url = (
+    'https://ecom-django-production.up.railway.app' 
+    if os.getenv('DJANGO_ENV') == 'production' 
+    else 'http://localhost:8080'
+)
+
 schema_view = get_schema_view(
-   openapi.Info(
-      title="Seine API",
-      default_version='v1',
-      description="API documentation for the Seine project",
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="Seine API",
+        default_version='v1',
+        description="API documentation for the Seine project",
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+    url=base_url,  # This will use HTTP for development, HTTPS for production
 )
 
 urlpatterns = [
