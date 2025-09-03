@@ -8,6 +8,8 @@ from django.contrib.auth import get_user_model
 from apps.utils.responses import success_response, error_response
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 User = get_user_model()
 
@@ -17,25 +19,51 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Staff & superusers see all users
         if self.request.user.is_staff or self.request.user.is_superuser:
             return User.objects.all().order_by("id")
-        # Normal users only see themselves
         return User.objects.filter(id=self.request.user.id)
 
-    @extend_schema(
-        description="Retrieve the currently authenticated user's details.",
-        responses={200: OpenApiResponse(response=UserSerializer)},
-        tags=["Users"],  # Groups it under "Users" in Swagger UI
+    # GET /users/me
+    @swagger_auto_schema(
+        operation_description="Retrieve the currently authenticated user's details.",
+        responses={200: UserSerializer()},
+        tags=["Users"],
     )
-    @decorators.action(detail=False, methods=["get"], url_path="me")
+    @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
         serializer = self.get_serializer(request.user)
-        return response.Response(serializer.data)
+        return Response(serializer.data)
+
+    # PATCH /users/me
+    @swagger_auto_schema(
+        operation_description="Update the currently authenticated user's details.",
+        request_body=UserSerializer,
+        responses={200: UserSerializer()},
+        tags=["Users"],
+    )
+    @action(detail=False, methods=["patch"], url_path="me")
+    def update_me(self, request):
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    # DELETE /users/me
+    @swagger_auto_schema(
+        operation_description="Delete (or deactivate) the currently authenticated user account.",
+        responses={204: "Account successfully deleted"},
+        tags=["Users"],
+    )
+    @action(detail=False, methods=["delete"], url_path="me")
+    def delete_me(self, request):
+        user = request.user
+        user.delete()  # or soft-delete if you prefer
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
 
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+
 
 class AuthViewSet(viewsets.ViewSet):
     permission_classes = [AllowAny]
