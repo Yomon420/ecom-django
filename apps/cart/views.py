@@ -10,6 +10,10 @@ class CartViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return CartItem.objects.none()
+        
         queryset = CartItem.objects.all()
         
         # Regular users only see their own cart

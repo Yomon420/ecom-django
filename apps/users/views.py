@@ -14,12 +14,24 @@ User = get_user_model()
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by("id")
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # Staff & superusers see all users
         if self.request.user.is_staff or self.request.user.is_superuser:
             return User.objects.all().order_by("id")
+        # Normal users only see themselves
         return User.objects.filter(id=self.request.user.id)
+
+    @extend_schema(
+        description="Retrieve the currently authenticated user's details.",
+        responses={200: OpenApiResponse(response=UserSerializer)},
+        tags=["Users"],  # Groups it under "Users" in Swagger UI
+    )
+    @decorators.action(detail=False, methods=["get"], url_path="me")
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return response.Response(serializer.data)
     
 
 from drf_yasg.utils import swagger_auto_schema
