@@ -19,45 +19,50 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return User.objects.none()
+            
         if self.request.user.is_staff or self.request.user.is_superuser:
             return User.objects.all().order_by("id")
         return User.objects.filter(id=self.request.user.id)
 
-    # GET /users/me
+    # Single endpoint that handles GET, PATCH, and DELETE for /users/me
     @swagger_auto_schema(
+        method='get',
         operation_description="Retrieve the currently authenticated user's details.",
         responses={200: UserSerializer()},
     )
-    @action(detail=False, methods=["get"], url_path="me")
-    def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
-
-    # PATCH /users/me
     @swagger_auto_schema(
+        method='patch',
         operation_description="Update the currently authenticated user's details.",
         request_body=UserSerializer,
         responses={200: UserSerializer()},
     )
-    @action(detail=False, methods=["patch"], url_path="me")
-    def update_me(self, request):
-        serializer = self.get_serializer(
-            request.user, data=request.data, partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    # DELETE /users/me
     @swagger_auto_schema(
+        method='delete',
         operation_description="Delete (or deactivate) the currently authenticated user account.",
         responses={204: "Account successfully deleted"},
     )
-    @action(detail=False, methods=["delete"], url_path="me")
-    def delete_me(self, request):
+    @action(detail=False, methods=["get", "patch", "delete"], url_path="me")
+    def me(self, request):
         user = request.user
-        user.delete()  # or soft-delete if you prefer
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        if request.method == "GET":
+            serializer = self.get_serializer(user)
+            return Response(serializer.data)
+            
+        elif request.method == "PATCH":
+            serializer = self.get_serializer(
+                user, data=request.data, partial=True
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+            
+        elif request.method == "DELETE":
+            user.delete()  # or soft-delete if you prefer
+            return Response(status=status.HTTP_204_NO_CONTENT)
     
 
 
