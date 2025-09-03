@@ -27,7 +27,6 @@ class UserViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve the currently authenticated user's details.",
         responses={200: UserSerializer()},
-        tags=["Users"],
     )
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
@@ -39,7 +38,6 @@ class UserViewSet(viewsets.ModelViewSet):
         operation_description="Update the currently authenticated user's details.",
         request_body=UserSerializer,
         responses={200: UserSerializer()},
-        tags=["Users"],
     )
     @action(detail=False, methods=["patch"], url_path="me")
     def update_me(self, request):
@@ -54,7 +52,6 @@ class UserViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Delete (or deactivate) the currently authenticated user account.",
         responses={204: "Account successfully deleted"},
-        tags=["Users"],
     )
     @action(detail=False, methods=["delete"], url_path="me")
     def delete_me(self, request):
