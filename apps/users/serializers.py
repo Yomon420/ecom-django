@@ -11,10 +11,21 @@ User = get_user_model()
 
 # UserSerializer is for output/display like displaying profile infomation.
 class UserSerializer(serializers.ModelSerializer):
+    is_superuser = serializers.BooleanField(read_only=True) 
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'role',
+            'created_at',
+            'is_superuser',
+        ]
+        read_only_fields = ['id', 'created_at', 'is_superuser']
+
 
 # RegisterSerializer is for input/creation like handling user registration to securely handle password
 from rest_framework import serializers
@@ -63,14 +74,12 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=email, password=password)
         
         if not user:
-            # Check if user exists but is inactive
             try:
                 user_obj = User.objects.get(email=email)
                 if not user_obj.is_active:
                     raise serializers.ValidationError(_("Account is not activated. Please check your email."))
             except User.DoesNotExist:
                 pass
-            
             raise serializers.ValidationError(_("Invalid credentials."))
 
         if not user.is_active:
@@ -84,6 +93,8 @@ class LoginSerializer(serializers.Serializer):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
+                "role": user.role,
+                "is_superuser": user.is_superuser, 
             },
             "tokens": tokens,
         }
