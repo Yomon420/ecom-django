@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .serializers import RegisterSerializer, VerifyOTPSerializer, UserSerializer,LoginSerializer
+from .serializers import RegisterSerializer, VerifyOTPSerializer, UserSerializer,LoginSerializer, RefreshTokenSerializer
 from .services import send_otp_to_email, verify_otp_and_create_user
 from django.contrib.auth import get_user_model
 from apps.utils.responses import success_response, error_response
@@ -164,3 +164,33 @@ class AuthViewSet(viewsets.ViewSet):
                 code=status.HTTP_201_CREATED,
             )
         return error_response(errors=serializer.errors, message="Invalid input")
+    
+    @swagger_auto_schema(
+        method="post",
+        request_body=RefreshTokenSerializer,
+        responses={
+            200: openapi.Response(
+                description="New access token",
+                examples={
+                    "application/json": {
+                        "success": True,
+                        "message": "Token refreshed successfully",
+                        "data": {
+                            "access": "new-jwt-access-token"
+                        }
+                    }
+                }
+            ),
+            400: "Invalid refresh token"
+        }
+    )
+    @action(detail=False, methods=["post"], url_path="refresh")
+    def refresh(self, request):
+        serializer = RefreshTokenSerializer(data=request.data)
+        if serializer.is_valid():
+            return success_response(
+                data=serializer.validated_data,
+                message="Token refreshed successfully"
+            )
+        return error_response(errors=serializer.errors, message="Invalid refresh token")
+
