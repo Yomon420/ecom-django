@@ -1,15 +1,30 @@
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product
 from .serializers import ProductSerializer
 
+
+class IsAdminOrReadOnly(BasePermission):
+    """
+    Custom permission to only allow admin users to create, update, delete.
+    Regular authenticated users can only read.
+    """
+    def has_permission(self, request, view):
+        # Read permissions are allowed for any authenticated user
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return request.user and request.user.is_authenticated
+        
+        # Write permissions are only allowed for admin users
+        return request.user and request.user.is_authenticated and request.user.is_staff
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category']
     search_fields = ['name', 'description']
