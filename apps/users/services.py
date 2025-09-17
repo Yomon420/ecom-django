@@ -1,6 +1,6 @@
 from .models import User, EmailOTP
 from django.core.mail import send_mail
-from rest_framework_simplejwt.tokens import RefreshToken
+from .tokens import CustomRefreshToken  # Import custom token
 import random
 from django.utils import timezone
 from datetime import timedelta
@@ -9,7 +9,7 @@ def generate_otp():
     return str(random.randint(100000, 999999))
 
 def generate_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
+    refresh = CustomRefreshToken.for_user(user)  # Use custom token
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
@@ -70,4 +70,3 @@ def verify_otp_and_create_user(email, otp):
 
     tokens = generate_tokens_for_user(user)
     return user, tokens
-
